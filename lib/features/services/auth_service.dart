@@ -3,10 +3,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:prjct223_d1_24/common/widgets/bottom_bar.dart';
 import 'package:prjct223_d1_24/constants/handling_error.dart';
 import 'package:prjct223_d1_24/constants/universal_var.dart';
 import 'package:prjct223_d1_24/constants/utils.dart';
-import 'package:prjct223_d1_24/home/screens/home_screens.dart';
+// import 'package:prjct223_d1_24/home/screens/home_screens.dart';
 import 'package:prjct223_d1_24/models/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:prjct223_d1_24/provider/user_provider.dart';
@@ -30,13 +31,14 @@ class AuthService {
         address: '',
         type: '',
         token: '',
-        // cart: cart
+        cart: [],
       );
       http.Response res = await http.post(Uri.parse('$uri/api/signup'),
           body: user.toJson(),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-          });
+          }
+          );
 
       httpErrorHandle(
           response: res,
@@ -70,9 +72,48 @@ class AuthService {
           Provider.of<UserProvider>(context, listen: false).setUser(res.body);
           await prefs.setString('x-auth-token', jsonDecode(res.body)['token']);
           Navigator.pushNamedAndRemoveUntil(
-              context, HomeScreen.routeName, (route) => false);
+              context, BottomBar.routeName, (route) => false);
         },
       );
+    } catch (e) {
+      showSnackBar(context, e.toString());
+    }
+  }
+
+  //getUserdata
+  void getUserData(
+    BuildContext context,
+  ) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('x-auth-token');
+
+      if (token == null) {
+        prefs.setString('x-auth-token', '');
+      }
+
+      var tokenRes = await http.post(
+        Uri.parse('$uri/tokenIsValid'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': token!
+        },
+      );
+
+      var response = jsonDecode(tokenRes.body);
+
+      if (response == true) {
+        http.Response userRes = await http.get(
+          Uri.parse('$uri/'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': token
+          },
+        );
+
+        var userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.setUser(userRes.body);
+      }
     } catch (e) {
       showSnackBar(context, e.toString());
     }

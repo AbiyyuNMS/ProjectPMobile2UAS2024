@@ -2,6 +2,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const authRouter = require('./routes/auth');
+const adminRouter = require('./routes/admin');
+const productRouter = require('./routes/products');
+const userRouter = require('./routes/user');
 
 const PORT = 3000;
 const app = express();
@@ -10,6 +13,9 @@ const DB = "mongodb+srv://abiyyunms223:abiyyugagah223@prj223.kseksdb.mongodb.net
 
 app.use(express.json());
 app.use(authRouter);
+app.use(adminRouter);
+app.use(productRouter);
+app.use(userRouter);
 
 
 //koneksi
